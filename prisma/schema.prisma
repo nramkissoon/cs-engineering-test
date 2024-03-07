@@ -2,23 +2,63 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["driverAdapters"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 
-    // Do not use foreign keys (PlanetScale does not support them)
-    relationMode = "prisma"
+  // Do not use foreign keys (PlanetScale does not support them)
+  relationMode = "prisma"
 }
 
 model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id         String    @id
+  userId     String
+  createdAt  DateTime  @default(now())
+  title      String    @db.TinyText
+  content    String    @db.Text
+  totalVotes Int       @default(0)
+  votes      Vote[]    @relation("PostToVote")
+  comments   Comment[]
 
-    @@index([name])
+  @@index([userId]) // Index user ID for faster lookups for a specific user's posts
+}
+
+model Comment {
+  id              String    @id
+  userId          String
+  postId          String?
+  post            Post?     @relation(fields: [postId], references: [id])
+  createdAt       DateTime  @default(now())
+  content         String    @db.Text
+  totalVotes      Int       @default(0)
+  votes           Vote[]    @relation("CommentToVote")
+  parentCommentId String?
+  parentComment   Comment?  @relation("CommentToComment", fields: [parentCommentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  comments        Comment[] @relation("CommentToComment")
+
+  @@index([userId]) // Index user ID for faster lookups for a specific user's comments
+  @@index([postId]) // Index post ID for faster lookups for a specific post's comments
+  @@index([parentCommentId]) // Index parent comment ID for faster lookups for a specific comment's children
+}
+
+enum VoteType {
+  UP
+  DOWN
+}
+
+model Vote {
+  id        String   @id
+  contentId String // ID of the post or comment
+  userId    String
+  value     VoteType
+  createdAt DateTime @default(now())
+  comment   Comment? @relation("CommentToVote", fields: [contentId], references: [id], map: "commentToVote")
+  post      Post?    @relation("PostToVote", fields: [contentId], references: [id], map: "postToVote")
+
+  @@index([contentId]) // Index content ID for faster lookups for a specific content's votes
+  @@index([contentId, userId], name: "contentId_userId") // Index content ID and user ID for faster lookups for a specific user's vote on a specific comment or post
 }
