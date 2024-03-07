@@ -6,7 +6,9 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { AuthObject, getAuth } from "@clerk/nextjs/server";
+import { TRPCError, initTRPC } from "@trpc/server";
+import { NextRequest } from "next/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -24,7 +26,9 @@ import { db } from "~/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: {
+  auth: ReturnType<typeof getAuth>;
+}) => {
   return {
     db,
     ...opts,
@@ -53,6 +57,21 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 });
 
 /**
+ * Reusable middleware that enforces users are logged in before running the
+ * procedure
+ */
+const enforceUserIsAuthed = t.middleware(({ next, ctx }) => {
+  if (!ctx.auth.userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      auth: ctx.auth,
+    },
+  });
+});
+
+/**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
  *
  * These are the pieces you use to build your tRPC API. You should import these a lot in the
@@ -74,3 +93,11 @@ export const createTRPCRouter = t.router;
  * are logged in.
  */
 export const publicProcedure = t.procedure;
+
+/**
+ * Authenticated procedure
+ *
+ * This is a middleware that you can use to ensure that a user is logged in before they can call a
+ * procedure.
+ */
+export const authenticatedProcedure = t.procedure.use(enforceUserIsAuthed);
