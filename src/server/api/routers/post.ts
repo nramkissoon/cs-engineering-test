@@ -1,32 +1,65 @@
 import { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
+import {
+  authenticatedProcedure,
+  createTRPCRouter,
+  publicProcedure,
+} from "~/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+const createPostId = () => `post_${uuidv4()}`;
 
 export const postRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
-
-  create: publicProcedure
-    .input(z.object({ name: z.string().min(1) }))
+  create: authenticatedProcedure
+    .input(
+      z.object({
+        title: z.string().max(255).min(1),
+        content: z.string().max(10000).min(1),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      // simulate a slow db call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      return ctx.db.post.create({
-        data: {
-          name: input.name,
-        },
-      });
+      try {
+        return await ctx.db.post.create({
+          data: {
+            id: createPostId(),
+            title: input.title,
+            content: input.content,
+            userId: ctx.auth.userId,
+          },
+        });
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          message: "An error occurred while creating a post",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
     }),
 
-  getLatest: publicProcedure.query(({ ctx }) => {
-    return ctx.db.post.findFirst({
-      orderBy: { createdAt: "desc" },
-    });
-  }),
+  list: publicProcedure
+    .input(
+      z.object({
+        userId: z.string().optional(),
+        postId: z.string().optional(),
+      }),
+    )
+    .query(({ ctx, input }) => {
+      try {
+        return ctx.db.post.findMany({
+          where: {
+            userId: input.userId,
+            id: input.postId,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+      } catch (error) {
+        console.error(error);
+        throw new TRPCError({
+          message: "An error occurred while fetching posts",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+      }
+    }),
 });
