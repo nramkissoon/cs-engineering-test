@@ -23,6 +23,18 @@ const getContentType = (contentId: string) => {
   });
 };
 
+/**
+ * @param value - determine increment/decrement
+ * @param newVote - if the vote is new, or if the user is changing their vote
+ * @returns
+ */
+const getVoteIncrementValue = (value: VoteType, newVote: boolean) => {
+  if (newVote) {
+    return value === VoteType.UP ? 1 : -1;
+  }
+  return value === VoteType.UP ? 2 : -2;
+};
+
 export const voteRouter = createTRPCRouter({
   vote: authenticatedProcedure
     .input(
@@ -97,7 +109,8 @@ export const voteRouter = createTRPCRouter({
           },
           data: {
             totalVotes: {
-              [value === VoteType.UP ? "increment" : "decrement"]: 1,
+              [value === VoteType.UP ? "increment" : "decrement"]:
+                getVoteIncrementValue(value, existingVote === null),
             },
           },
         };
