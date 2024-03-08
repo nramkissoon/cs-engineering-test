@@ -3,7 +3,7 @@
 import { useSignIn, useSignUp, useAuth } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { SVGProps } from "react";
+import type { SVGProps } from "react";
 
 const GoogleSvg = (props: SVGProps<SVGSVGElement>) => (
   <svg
