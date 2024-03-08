@@ -18,7 +18,9 @@ export const UserProfile = () => {
       <Image
         src={user?.imageUrl}
         alt="Profile image"
-        className="h-8 w-8 rounded-full"
+        className="rounded-full"
+        width={32}
+        height={32}
       />
       <span className="font-medium text-gray-700">{user?.fullName}</span>
     </div>
