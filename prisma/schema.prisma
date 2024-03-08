@@ -22,27 +22,25 @@ model Post {
   content    String    @db.Text
   totalVotes Int       @default(0)
   votes      Vote[]    @relation("PostToVote")
-  comments   Comment[]
+  comments   Comment[] @relation("PostToComment")
 
   @@index([userId]) // Index user ID for faster lookups for a specific user's posts
 }
 
 model Comment {
-  id              String    @id
-  userId          String
-  postId          String?
-  post            Post?     @relation(fields: [postId], references: [id])
-  createdAt       DateTime  @default(now())
-  content         String    @db.Text
-  totalVotes      Int       @default(0)
-  votes           Vote[]    @relation("CommentToVote")
-  parentCommentId String?
-  parentComment   Comment?  @relation("CommentToComment", fields: [parentCommentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  comments        Comment[] @relation("CommentToComment")
+  id            String    @id
+  userId        String
+  parentId      String?
+  parentPost    Post?     @relation("PostToComment", fields: [parentId], references: [id], map: "postToComment")
+  parentComment Comment?  @relation("CommentToComment", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "commentToComment")
+  createdAt     DateTime  @default(now())
+  content       String    @db.Text
+  totalVotes    Int       @default(0)
+  votes         Vote[]    @relation("CommentToVote")
+  comments      Comment[] @relation("CommentToComment")
 
   @@index([userId]) // Index user ID for faster lookups for a specific user's comments
-  @@index([postId]) // Index post ID for faster lookups for a specific post's comments
-  @@index([parentCommentId]) // Index parent comment ID for faster lookups for a specific comment's children
+  @@index([parentId]) // Index parent ID for faster lookups for a specific parents's comments
 }
 
 enum VoteType {

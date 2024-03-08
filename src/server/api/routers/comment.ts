@@ -9,32 +9,6 @@ import { TRPCError } from "@trpc/server";
 
 const createCommentId = () => `comm_${uuidv4()}`;
 
-// determines if the parent of the comment is a post or a comment by looking at ID
-const getParentIdType = (id: string) => {
-  if (id.startsWith("post_")) {
-    return "post";
-  }
-  if (id.startsWith("comm_")) {
-    return "comment";
-  }
-
-  throw new TRPCError({
-    message: "Invalid parent ID",
-    code: "BAD_REQUEST",
-  });
-};
-
-// Utility for building Primsa queries, fills the parent ID based on the type of parent
-const fillParentId = (parentId: string) => {
-  const parentIdType = getParentIdType(parentId);
-  if (parentIdType === "post") {
-    return { postId: parentId };
-  }
-  if (parentIdType === "comment") {
-    return { parentCommentId: parentId };
-  }
-};
-
 export const commentRouter = createTRPCRouter({
   create: authenticatedProcedure
     .input(
@@ -50,7 +24,7 @@ export const commentRouter = createTRPCRouter({
             id: createCommentId(),
             content: input.content,
             userId: ctx.auth.userId,
-            ...fillParentId(input.parentId),
+            parentId: input.parentId,
           },
         });
       } catch (error) {
@@ -72,7 +46,7 @@ export const commentRouter = createTRPCRouter({
       try {
         return ctx.db.comment.findMany({
           where: {
-            ...fillParentId(input.parentId),
+            parentId: input.parentId,
           },
           orderBy: {
             createdAt: "desc",
