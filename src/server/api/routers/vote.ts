@@ -8,7 +8,7 @@ import {
 import { VoteType } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
-const createCommentId = () => `vote_${uuidv4()}`;
+const createVoteId = () => `vote_${uuidv4()}`;
 
 const getContentType = (contentId: string) => {
   if (contentId.startsWith("post_")) {
@@ -88,15 +88,16 @@ export const voteRouter = createTRPCRouter({
         const buildUpsert = () =>
           ctx.db.vote.upsert({
             where: {
-              id: existingVote?.id,
-              userId,
-              contentId,
+              contentId_userId: {
+                contentId,
+                userId,
+              },
             },
             update: {
               value,
             },
             create: {
-              id: createCommentId(),
+              id: createVoteId(),
               value,
               userId,
               contentId,
@@ -109,8 +110,7 @@ export const voteRouter = createTRPCRouter({
           },
           data: {
             totalVotes: {
-              [value === VoteType.UP ? "increment" : "decrement"]:
-                getVoteIncrementValue(value, existingVote === null),
+              increment: getVoteIncrementValue(value, existingVote === null),
             },
           },
         };
@@ -157,7 +157,7 @@ export const voteRouter = createTRPCRouter({
       } catch (error) {
         console.error(error);
         throw new TRPCError({
-          message: "An error occurred while voting",
+          message: "An error occurred while fetching votes",
           code: "INTERNAL_SERVER_ERROR",
         });
       }
