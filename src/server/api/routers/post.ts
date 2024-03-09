@@ -6,6 +6,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { getUserFullname } from "~/lib/utils";
 
 const createPostId = () => `post_${uuidv4()}`;
 
@@ -25,6 +26,7 @@ export const postRouter = createTRPCRouter({
             title: input.title,
             content: input.content,
             userId: ctx.auth.userId,
+            userFullName: getUserFullname(ctx.user),
           },
         });
       } catch (error) {
@@ -43,9 +45,9 @@ export const postRouter = createTRPCRouter({
         postId: z.string().optional(),
       }),
     )
-    .query(({ ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       try {
-        return ctx.db.post.findMany({
+        return await ctx.db.post.findMany({
           where: {
             userId: input.userId,
             id: input.postId,

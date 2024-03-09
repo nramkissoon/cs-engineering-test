@@ -9,33 +9,31 @@ import { useState } from "react";
 import Image from "next/image";
 
 export const NewPost = () => {
-  const { user, isSignedIn } = useUser();
-  if (!user || !isSignedIn) {
-    return null;
-  }
+  const { user } = useUser();
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
   const { mutateAsync } = api.post.create.useMutation();
   const apiUtils = api.useUtils();
-  const invalidatePosts = apiUtils.post.list.invalidate;
 
   const handleSubmit = async () => {
     await mutateAsync({ title, content });
-    await invalidatePosts();
+    await apiUtils.post.list.invalidate();
   };
 
   return (
     <div className="flex w-full gap-x-4 rounded-xl border border-gray-200 px-4 pb-3 pt-4 shadow-md shadow-black/5">
       <div>
-        <Image
-          src={user?.imageUrl}
-          alt="Profile image"
-          className="rounded-full"
-          width={24}
-          height={24}
-        />
+        {user && (
+          <Image
+            src={user?.imageUrl}
+            alt="Profile image"
+            className="rounded-full"
+            width={24}
+            height={24}
+          />
+        )}
       </div>
       <div className="flex w-full flex-col items-start gap-y-3">
         <Input

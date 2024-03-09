@@ -7,13 +7,7 @@ import type { SVGProps } from "react";
 import clsx from "clsx";
 
 export const ChevronUp = (props: SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={20}
-    height={20}
-    fill="none"
-    {...props}
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} fill="none">
     <path fill="#fff" d="M0 0h20v20H0z" />
     <path
       strokeLinecap="round"
@@ -21,6 +15,19 @@ export const ChevronUp = (props: SVGProps<SVGSVGElement>) => (
       strokeWidth={1.5}
       className={clsx("stroke-gray-700", props.className)}
       d="M3.333 11.667 10 5l6.667 6.667m-10 2.5L10 10.832l3.333 3.333"
+    />
+  </svg>
+);
+
+export const ChevronDown = (props: SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={20} height={20} fill="none">
+    <path
+      stroke="#374151"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      className={clsx("stroke-gray-700", props.className)}
+      d="M13.333 5.833 10 9.167 6.667 5.833m-3.334 2.5L10 15l6.667-6.667"
     />
   </svg>
 );

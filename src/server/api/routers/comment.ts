@@ -6,6 +6,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { getUserFullname } from "~/lib/utils";
 
 const createCommentId = () => `comm_${uuidv4()}`;
 
@@ -25,6 +26,7 @@ export const commentRouter = createTRPCRouter({
             content: input.content,
             userId: ctx.auth.userId,
             parentId: input.parentId,
+            userFullName: getUserFullname(ctx.user),
           },
         });
       } catch (error) {
