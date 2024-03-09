@@ -15,14 +15,15 @@ datasource db {
 }
 
 model Post {
-  id         String    @id
-  userId     String
-  createdAt  DateTime  @default(now())
-  title      String    @db.TinyText
-  content    String    @db.Text
-  totalVotes Int       @default(0)
-  votes      Vote[]    @relation("PostToVote")
-  comments   Comment[] @relation("PostToComment")
+  id           String    @id
+  userId       String
+  userFullName String // ideally this would be in a user table that is synced with Clerk, however for the scope of the test we will keep it here on creation in order to satisfy the UI requirements.
+  createdAt    DateTime  @default(now())
+  title        String    @db.TinyText
+  content      String    @db.Text
+  totalVotes   Int       @default(0)
+  votes        Vote[]    @relation("PostToVote")
+  comments     Comment[] @relation("PostToComment")
 
   @@index([userId]) // Index user ID for faster lookups for a specific user's posts
 }
@@ -30,6 +31,7 @@ model Post {
 model Comment {
   id            String    @id
   userId        String
+  userFullName  String // ideally this would be in a user table that is synced with Clerk, however for the scope of the test we will keep it here on creation in order to satisfy the UI requirements.
   parentId      String?
   parentPost    Post?     @relation("PostToComment", fields: [parentId], references: [id], map: "postToComment")
   parentComment Comment?  @relation("CommentToComment", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "commentToComment")
@@ -57,6 +59,7 @@ model Vote {
   comment   Comment? @relation("CommentToVote", fields: [contentId], references: [id], map: "commentToVote")
   post      Post?    @relation("PostToVote", fields: [contentId], references: [id], map: "postToVote")
 
+  @@unique([contentId, userId])
   @@index([contentId]) // Index content ID for faster lookups for a specific content's votes
   @@index([contentId, userId], name: "contentId_userId") // Index content ID and user ID for faster lookups for a specific user's vote on a specific comment or post
 }
