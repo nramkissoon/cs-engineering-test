@@ -36,6 +36,87 @@ const getVoteIncrementValue = (value: VoteType, newVote: boolean) => {
 };
 
 export const voteRouter = createTRPCRouter({
+  removeVote: authenticatedProcedure
+    .input(
+      z.object({
+        contentId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId } = ctx.auth;
+      const { contentId } = input;
+      const contentType = getContentType(contentId);
+
+      // First get the object we're voting on
+      let content;
+      if (contentType === "post") {
+        content = await ctx.db.post.findUnique({
+          where: {
+            id: contentId,
+          },
+        });
+      } else if (contentType === "comment") {
+        content = await ctx.db.comment.findUnique({
+          where: {
+            id: contentId,
+          },
+        });
+      }
+
+      if (!content) {
+        throw new TRPCError({
+          message: "Content not found",
+          code: "NOT_FOUND",
+        });
+      }
+
+      // Check if the user has already voted
+      const existingVote = await ctx.db.vote.findFirst({
+        where: {
+          userId,
+          contentId,
+        },
+      });
+
+      if (existingVote) {
+        const voteTotalUpateArgs = {
+          where: {
+            id: contentId,
+          },
+          data: {
+            totalVotes: {
+              decrement: getVoteIncrementValue(existingVote.value, true),
+            },
+          },
+        };
+
+        if (contentType === "post") {
+          await ctx.db.$transaction([
+            ctx.db.vote.delete({
+              where: {
+                contentId_userId: {
+                  contentId,
+                  userId,
+                },
+              },
+            }),
+            ctx.db.post.update(voteTotalUpateArgs),
+          ]);
+        } else {
+          await ctx.db.$transaction([
+            ctx.db.vote.delete({
+              where: {
+                contentId_userId: {
+                  contentId,
+                  userId,
+                },
+              },
+            }),
+            ctx.db.comment.update(voteTotalUpateArgs),
+          ]);
+        }
+      }
+    }),
   vote: authenticatedProcedure
     .input(
       z.object({
