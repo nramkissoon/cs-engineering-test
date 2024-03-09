@@ -16,7 +16,7 @@ export const Input = ({
   helperText?: string;
 }) => {
   return (
-    <div className="flex flex-col items-start gap-y-2">
+    <div className="flex w-full flex-col items-start gap-y-2">
       {label && (
         <Label className="text-sm font-medium text-[#172554]" {...labelProps}>
           {label}
