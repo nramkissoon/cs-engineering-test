@@ -71,13 +71,7 @@ const Comments = ({ postId }: { postId: string }) => {
     const commentData = data.commentTree[i];
     commentData && traverse(commentData, 0);
     if (i != data.commentTree.length - 1) {
-      CommentList.push(
-        <Separator
-          key={i}
-          className="bg-border bg-gray-200"
-          orientation="horizontal"
-        />,
-      );
+      CommentList.push(<Separator key={i} orientation="horizontal" />);
     }
   }
 
@@ -103,10 +97,7 @@ export default function PostPage({ params }: { params: { postId: string } }) {
       <BackToPostsLink />
       {post && <Post {...post} currentVote={currentVote} />}
       <NewComment parentId={params.postId} rootPostId={params.postId} />
-      <Separator
-        orientation="horizontal"
-        className="border-gray-200 bg-border"
-      />
+      <Separator orientation="horizontal" />
 
       <span className="text-sm font-medium text-gray-800">All comments</span>
       <Comments postId={params.postId} />

@@ -73,10 +73,7 @@ export const NewComment = ({
         <UserImage />
         <div className="flex w-full flex-col items-start gap-y-3">
           <CommentInput comment={comment} setComment={setComment} />
-          <Separator
-            orientation="horizontal"
-            className="border-gray-200 bg-border"
-          />
+          <Separator orientation="horizontal" />
           <Button className="self-end" size={"sm"} onClick={handleSubmit}>
             Comment
           </Button>

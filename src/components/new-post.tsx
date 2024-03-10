@@ -57,10 +57,7 @@ export const NewPost = () => {
                 "w-full border-none h-6 pl-0 placeholder:font-light placeholder:text-base py-0",
             }}
           />
-          <Separator
-            orientation="horizontal"
-            className="border-gray-200 bg-border"
-          />
+          <Separator orientation="horizontal" />
           <Button size={"sm"} className="self-end" onClick={handleSubmit}>
             Post
           </Button>

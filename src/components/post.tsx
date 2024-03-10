@@ -32,17 +32,19 @@ const VoteButtonContainer = ({
     if (!isSignedIn) {
       return;
     }
+    const invalidateQueries = async () => {
+      await apiUtils.post.list.invalidate();
+      await apiUtils.vote.list.invalidate();
+    };
     if (vote === cuurentVote) {
       await removeVote({ contentId: postId }).then(async () => {
         // Invalidate the post and vote queries to refetch the data
-        await apiUtils.post.list.invalidate();
-        await apiUtils.vote.list.invalidate();
+        await invalidateQueries();
       });
       return;
     } else {
       await updateVote({ contentId: postId, value: vote }).then(async () => {
-        await apiUtils.post.list.invalidate();
-        await apiUtils.vote.list.invalidate();
+        await invalidateQueries();
       });
     }
   };
@@ -171,12 +173,7 @@ export const PostFeed = ({
       );
 
     if (i != data.length - 1) {
-      Posts.push(
-        <Separator
-          className="bg-border bg-gray-200"
-          orientation="horizontal"
-        />,
-      );
+      Posts.push(<Separator orientation="horizontal" />);
     }
   }
 

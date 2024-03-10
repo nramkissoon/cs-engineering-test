@@ -36,18 +36,19 @@ const VoteButtonContainer = ({
     if (!isSignedIn) {
       return;
     }
+    const invalidateQueries = async () => {
+      await apiUtils.comment.list.invalidate();
+      await apiUtils.vote.list.invalidate();
+    };
     if (vote === cuurentVote) {
       await removeVote({ contentId: commentId }).then(async () => {
         // Invalidate the post and vote queries to refetch the data
-        // TODO: refactor
-        await apiUtils.comment.list.invalidate();
-        await apiUtils.vote.list.invalidate();
+        await invalidateQueries();
       });
       return;
     } else {
       await updateVote({ contentId: commentId, value: vote }).then(async () => {
-        await apiUtils.comment.list.invalidate();
-        await apiUtils.vote.list.invalidate();
+        await invalidateQueries();
       });
     }
   };

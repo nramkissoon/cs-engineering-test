@@ -15,10 +15,7 @@ export default function RootLayout({
   return (
     <div className="flex h-screen w-full">
       <SidebarNavigation />
-      <Separator
-        orientation="vertical"
-        className="h-screen border-gray-200 bg-border"
-      />
+      <Separator orientation="vertical" className="h-screen" />
       <div className="ml-36 w-[600px] pt-10">{children}</div>
     </div>
   );
