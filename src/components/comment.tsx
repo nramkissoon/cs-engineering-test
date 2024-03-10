@@ -54,7 +54,10 @@ const VoteButtonContainer = ({
 
   return (
     <div className="flex items-center gap-2">
-      <button onClick={() => handleVote(VoteType.UP, currentVote)}>
+      <button
+        onClick={() => handleVote(VoteType.UP, currentVote)}
+        disabled={!isSignedIn}
+      >
         <ChevronUpSmall
           className={clsx(
             currentVote === VoteType.UP
@@ -64,7 +67,10 @@ const VoteButtonContainer = ({
         />
       </button>
       <span className="text-sm font-medium text-gray-800">{totalVotes}</span>
-      <button onClick={() => handleVote(VoteType.DOWN, currentVote)}>
+      <button
+        onClick={() => handleVote(VoteType.DOWN, currentVote)}
+        disabled={!isSignedIn}
+      >
         <ChevronDownSmall
           className={clsx(
             currentVote === VoteType.DOWN
@@ -109,12 +115,14 @@ const ReplyButton = ({
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const { isSignedIn } = useAuth();
   const textColor = isOpen ? "text-indigo-600" : "text-gray-700";
   const strokeColor = isOpen ? "stroke-indigo-600" : "stroke-gray-700";
   return (
     <button
       className="inline-flex items-center gap-x-2"
       onClick={() => setIsOpen(!isOpen)}
+      disabled={!isSignedIn}
     >
       <CommentIcon className={strokeColor} />
       <span className={clsx("text-sm font-medium", textColor)}>Reply</span>

@@ -49,7 +49,10 @@ const VoteButtonContainer = ({
 
   return (
     <div className="flex flex-col items-center gap-y-[10px]">
-      <button onClick={() => handleVote(VoteType.UP, currentVote)}>
+      <button
+        onClick={() => handleVote(VoteType.UP, currentVote)}
+        disabled={!isSignedIn}
+      >
         <ChevronUp
           className={clsx(
             currentVote === VoteType.UP
@@ -59,7 +62,10 @@ const VoteButtonContainer = ({
         />
       </button>
       <span className="font-medium text-gray-800">{totalVotes}</span>
-      <button onClick={() => handleVote(VoteType.DOWN, currentVote)}>
+      <button
+        onClick={() => handleVote(VoteType.DOWN, currentVote)}
+        disabled={!isSignedIn}
+      >
         <ChevronDown
           className={clsx(
             currentVote === VoteType.DOWN
