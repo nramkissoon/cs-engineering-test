@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex h-screen w-full">
       <SidebarNavigation />
       <Separator
         orientation="vertical"

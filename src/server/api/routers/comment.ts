@@ -7,6 +7,7 @@ import {
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { getUserFullname } from "~/lib/utils";
+import { Comment } from "@prisma/client";
 
 const createCommentId = () => `comm_${uuidv4()}`;
 
@@ -16,6 +17,7 @@ export const commentRouter = createTRPCRouter({
       z.object({
         content: z.string().max(10000).min(1),
         parentId: z.string(),
+        rootPostId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -27,6 +29,7 @@ export const commentRouter = createTRPCRouter({
             userId: ctx.auth.userId,
             parentId: input.parentId,
             userFullName: getUserFullname(ctx.user),
+            rootPostId: input.rootPostId,
           },
         });
       } catch (error) {
@@ -41,19 +44,47 @@ export const commentRouter = createTRPCRouter({
   list: publicProcedure
     .input(
       z.object({
-        parentId: z.string(),
+        rootId: z.string(),
       }),
     )
-    .query(({ ctx, input }) => {
+    .query(async ({ ctx, input }) => {
       try {
-        return ctx.db.comment.findMany({
+        const comments = await ctx.db.comment.findMany({
           where: {
-            parentId: input.parentId,
-          },
-          orderBy: {
-            createdAt: "desc",
+            rootPostId: input.rootId,
           },
         });
+
+        type Nested = Comment & { children: Nested[] };
+        // walk through the comments and create a nested structure
+        const createNested = (parentId: string): Nested[] => {
+          const children = comments.filter(
+            (comment) => comment.parentId === parentId,
+          );
+          return children.map((child) => ({
+            ...child,
+            children: createNested(child.id),
+          }));
+        };
+
+        const nestedComments = createNested(input.rootId);
+
+        // traverse the nested structure and sort children by createdAt
+        const sortNested = (nested: Nested): Nested => {
+          nested.children.sort(
+            (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+          );
+          nested.children = nested.children.map(sortNested);
+          return nested;
+        };
+
+        // traverse the top level comments and sort children by createdAt
+        const sortedNestedComments = nestedComments.map(sortNested);
+
+        return {
+          commentTree: sortedNestedComments,
+          commentIds: comments.map((comment) => comment.id),
+        };
       } catch (error) {
         console.error(error);
         throw new TRPCError({

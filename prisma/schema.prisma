@@ -15,15 +15,16 @@ datasource db {
 }
 
 model Post {
-  id           String    @id
-  userId       String
-  userFullName String // ideally this would be in a user table that is synced with Clerk, however for the scope of the test we will keep it here on creation in order to satisfy the UI requirements.
-  createdAt    DateTime  @default(now())
-  title        String    @db.TinyText
-  content      String    @db.Text
-  totalVotes   Int       @default(0)
-  votes        Vote[]    @relation("PostToVote")
-  comments     Comment[] @relation("PostToComment")
+  id                  String    @id
+  userId              String
+  userFullName        String // ideally this would be in a user table that is synced with Clerk, however for the scope of the test we will keep it here on creation in order to satisfy the UI requirements.
+  createdAt           DateTime  @default(now())
+  title               String    @db.TinyText
+  content             String    @db.Text
+  totalVotes          Int       @default(0)
+  votes               Vote[]    @relation("PostToVote")
+  directChildComments Comment[] @relation("PostToComment")
+  allComments         Comment[] @relation("RootPostToComment")
 
   @@index([userId]) // Index user ID for faster lookups for a specific user's posts
 }
@@ -32,7 +33,9 @@ model Comment {
   id            String    @id
   userId        String
   userFullName  String // ideally this would be in a user table that is synced with Clerk, however for the scope of the test we will keep it here on creation in order to satisfy the UI requirements.
-  parentId      String?
+  rootPostId    String // ID of the top-level post, used for easier querying of all comments and children of comments under a specific post
+  rootPost      Post      @relation("RootPostToComment", fields: [rootPostId], references: [id])
+  parentId      String
   parentPost    Post?     @relation("PostToComment", fields: [parentId], references: [id], map: "postToComment")
   parentComment Comment?  @relation("CommentToComment", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "commentToComment")
   createdAt     DateTime  @default(now())
@@ -43,6 +46,7 @@ model Comment {
 
   @@index([userId]) // Index user ID for faster lookups for a specific user's comments
   @@index([parentId]) // Index parent ID for faster lookups for a specific parents's comments
+  @@index([rootPostId]) // Index root post ID for faster lookups for a specific post's comments
 }
 
 enum VoteType {

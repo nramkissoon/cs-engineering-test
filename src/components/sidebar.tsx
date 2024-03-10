@@ -80,7 +80,7 @@ const SidebarLinkList = () => {
 
 export const SidebarNavigation = () => {
   return (
-    <div className="flex min-h-screen w-[277px] flex-col justify-between py-6 pl-4 pr-5">
+    <div className="sticky flex h-screen min-w-[277px] flex-col justify-between py-6 pl-4 pr-5">
       <SidebarLinkList />
       <UserProfile />
     </div>

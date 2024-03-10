@@ -14,7 +14,7 @@ const getContentType = (contentId: string) => {
   if (contentId.startsWith("post_")) {
     return "post";
   }
-  if (contentId.startsWith("comment_")) {
+  if (contentId.startsWith("comm_")) {
     return "comment";
   }
   throw new TRPCError({

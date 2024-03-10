@@ -32,6 +32,42 @@ export const ChevronDown = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const ChevronDownSmall = (props: SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={16}
+    height={16}
+    fill="none"
+    {...props}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      className={clsx("stroke-gray-700", props.className)}
+      d="M10.667 4.667 8 7.333 5.334 4.667m-2.667 2L8 12l5.334-5.333"
+    />
+  </svg>
+);
+
+export const ChevronUpSmall = (props: SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={16}
+    height={16}
+    fill="none"
+    {...props}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      className={clsx("stroke-gray-700", props.className)}
+      d="M2.667 9.333 8 4l5.334 5.333m-8 2L8 8.667l2.667 2.666"
+    />
+  </svg>
+);
+
 export const LogIn = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"

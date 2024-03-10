@@ -8,6 +8,8 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import Image from "next/image";
 import { timeAgo } from "~/lib/utils";
 import clsx from "clsx";
+import Link from "next/link";
+import { Separator } from "./ui/separator";
 
 const VoteButtonContainer = ({
   postId,
@@ -83,37 +85,39 @@ export const Post = ({
 }) => {
   const { user } = useUser();
   return (
-    <div className="flex gap-x-4 py-10">
+    <div className="flex gap-x-4">
       <VoteButtonContainer
         postId={id}
         currentVote={currentVote}
         totalVotes={totalVotes}
       />
-      <div className="flex flex-col gap-y-[6px]">
-        {user && (
-          <div className="flex items-center gap-x-2">
-            <div>
-              <Image
-                src={user?.imageUrl}
-                alt="Profile image"
-                className="rounded-full"
-                width={24}
-                height={24}
-              />
+      <Link href={`/posts/${id}`}>
+        <div className="flex flex-col gap-y-[6px]">
+          {user && (
+            <div className="flex items-center gap-x-2">
+              <div>
+                <Image
+                  src={user?.imageUrl}
+                  alt="Profile image"
+                  className="rounded-full"
+                  width={24}
+                  height={24}
+                />
+              </div>
+              <span className="text-sm font-light text-gray-600">
+                Posted by {userFullName} {timeAgo.format(createdAt)}
+              </span>
             </div>
-            <span className="text-sm font-light text-gray-600">
-              Posted by {userFullName} {timeAgo.format(createdAt)}
-            </span>
-          </div>
-        )}
-        <h2 className="font-medium text-gray-900">{title}</h2>
-        <p className="text-sm text-gray-700">{content}</p>
-      </div>
+          )}
+          <h2 className="font-medium text-gray-900">{title}</h2>
+          <p className="text-sm text-gray-700">{content}</p>
+        </div>
+      </Link>
     </div>
   );
 };
 
-const useVoteData = (contentIds: string[]) => {
+export const useVoteData = (contentIds: string[]) => {
   const { user, isSignedIn } = useUser();
   const { data } = api.vote.list.useQuery(
     {
@@ -153,11 +157,23 @@ export const PostFeed = ({
   );
   const voteData = useVoteData(data?.map((post) => post.id) ?? []);
 
-  return (
-    <div className="flex flex-col divide-y divide-gray-200">
-      {data?.map((post) => (
-        <Post key={post.id} {...post} currentVote={voteData[post.id]} />
-      ))}
-    </div>
-  );
+  const Posts = [];
+  for (let i = 0; data && i < data.length; i++) {
+    const post = data[i];
+    post &&
+      Posts.push(
+        <Post key={post.id} {...post} currentVote={voteData[post.id]} />,
+      );
+
+    if (i != data.length - 1) {
+      Posts.push(
+        <Separator
+          className="bg-border bg-gray-200"
+          orientation="horizontal"
+        />,
+      );
+    }
+  }
+
+  return <div className="flex flex-col gap-y-10">{Posts}</div>;
 };
