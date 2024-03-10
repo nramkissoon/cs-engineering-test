@@ -73,6 +73,7 @@ const Comments = ({ postId }: { postId: string }) => {
     if (i != data.commentTree.length - 1) {
       CommentList.push(
         <Separator
+          key={i}
           className="bg-border bg-gray-200"
           orientation="horizontal"
         />,

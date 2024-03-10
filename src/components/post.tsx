@@ -107,6 +107,7 @@ export const Post = ({
                 className="rounded-full"
                 width={24}
                 height={24}
+                unoptimized
               />
             </div>
             <span className="text-sm font-light text-gray-600">
