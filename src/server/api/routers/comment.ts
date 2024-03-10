@@ -27,6 +27,7 @@ export const commentRouter = createTRPCRouter({
             id: createCommentId(),
             content: input.content,
             userId: ctx.auth.userId,
+            userImageUrl: ctx.user.imageUrl,
             parentId: input.parentId,
             userFullName: getUserFullname(ctx.user),
             rootPostId: input.rootPostId,

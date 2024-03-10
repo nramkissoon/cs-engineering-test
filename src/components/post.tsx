@@ -80,10 +80,10 @@ export const Post = ({
   id,
   currentVote,
   userFullName,
+  userImageUrl,
 }: PostType & {
   currentVote: VoteType | undefined;
 }) => {
-  const { user } = useUser();
   return (
     <div className="flex gap-x-4">
       <VoteButtonContainer
@@ -93,22 +93,20 @@ export const Post = ({
       />
       <Link href={`/posts/${id}`}>
         <div className="flex flex-col gap-y-[6px]">
-          {user && (
-            <div className="flex items-center gap-x-2">
-              <div>
-                <Image
-                  src={user?.imageUrl}
-                  alt="Profile image"
-                  className="rounded-full"
-                  width={24}
-                  height={24}
-                />
-              </div>
-              <span className="text-sm font-light text-gray-600">
-                Posted by {userFullName} {timeAgo.format(createdAt)}
-              </span>
+          <div className="flex items-center gap-x-2">
+            <div>
+              <Image
+                src={userImageUrl}
+                alt="Profile image"
+                className="rounded-full"
+                width={24}
+                height={24}
+              />
             </div>
-          )}
+            <span className="text-sm font-light text-gray-600">
+              Posted by {userFullName} {timeAgo.format(createdAt)}
+            </span>
+          </div>
           <h2 className="font-medium text-gray-900">{title}</h2>
           <p className="text-sm text-gray-700">{content}</p>
         </div>
@@ -148,7 +146,7 @@ export const PostFeed = ({
   const { user, isLoaded } = useUser();
   const { data } = api.post.list.useQuery(
     {
-      userId: user?.id,
+      userId: forUser ? user?.id : undefined,
       postId,
     },
     {

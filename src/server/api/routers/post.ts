@@ -27,6 +27,7 @@ export const postRouter = createTRPCRouter({
             content: input.content,
             userId: ctx.auth.userId,
             userFullName: getUserFullname(ctx.user),
+            userImageUrl: ctx.user.imageUrl,
           },
         });
       } catch (error) {

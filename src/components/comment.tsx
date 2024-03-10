@@ -76,36 +76,30 @@ const VoteButtonContainer = ({
   );
 };
 
-// TODO: explain in comment
 const CommentHeader = ({
   createdAt,
   userFullName,
+  userImageUrl,
 }: {
   createdAt: Date;
   userFullName: string;
-}) => {
-  const { user } = useUser();
-  return (
-    <>
-      {user && (
-        <div className="flex items-center gap-x-2">
-          <div>
-            <Image
-              src={user?.imageUrl}
-              alt="Profile image"
-              className="rounded-full"
-              width={24}
-              height={24}
-            />
-          </div>
-          <span className="text-sm font-light text-gray-600">
-            {userFullName} {timeAgo.format(createdAt)}
-          </span>
-        </div>
-      )}
-    </>
-  );
-};
+  userImageUrl: string;
+}) => (
+  <div className="flex items-center gap-x-2">
+    <div>
+      <Image
+        src={userImageUrl}
+        alt="Profile image"
+        className="rounded-full"
+        width={24}
+        height={24}
+      />
+    </div>
+    <span className="text-sm font-light text-gray-600">
+      {userFullName} {timeAgo.format(createdAt)}
+    </span>
+  </div>
+);
 
 const ReplyButton = ({
   isOpen,
@@ -136,6 +130,7 @@ export const Comment = ({
   totalVotes,
   rootPostId,
   indentLevel,
+  userImageUrl,
 }: CommentType & {
   currentVote: VoteType | undefined;
   indentLevel: number;
@@ -149,7 +144,11 @@ export const Comment = ({
         paddingLeft: `${indentLevel * 32}px`,
       }}
     >
-      <CommentHeader createdAt={createdAt} userFullName={userFullName} />
+      <CommentHeader
+        createdAt={createdAt}
+        userFullName={userFullName}
+        userImageUrl={userImageUrl}
+      />
       <p className="text-sm text-gray-700">{content}</p>
       <div className="flex gap-x-4">
         <VoteButtonContainer
