@@ -8,7 +8,7 @@ import { Separator } from "~/components/ui/separator";
 import { api } from "~/trpc/react";
 import { useUser } from "@clerk/clerk-react";
 import { Comment } from "~/components/comment";
-import { Comment as CommentType, VoteType } from "@prisma/client";
+import type { Comment as CommentType, VoteType } from "@prisma/client";
 
 const BackToPostsLink = () => {
   return (
@@ -57,6 +57,7 @@ const Comments = ({ postId }: { postId: string }) => {
         userId={comment.userId}
         currentVote={votesMap.get(comment.id)}
         rootPostId={comment.rootPostId}
+        userImageUrl={comment.userImageUrl}
         indentLevel={level}
       />,
     );

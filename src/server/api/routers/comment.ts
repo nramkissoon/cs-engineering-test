@@ -7,7 +7,7 @@ import {
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { getUserFullname } from "~/lib/utils";
-import { Comment } from "@prisma/client";
+import type { Comment } from "@prisma/client";
 
 const createCommentId = () => `comm_${uuidv4()}`;
 

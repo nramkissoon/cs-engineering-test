@@ -1,7 +1,8 @@
 "use client";
 
-import { useAuth, useUser } from "@clerk/clerk-react";
-import { Comment as CommentType, VoteType } from "@prisma/client";
+import { useAuth } from "@clerk/clerk-react";
+import type { Comment as CommentType } from "@prisma/client";
+import { VoteType } from "@prisma/client";
 import clsx from "clsx";
 import { api } from "~/trpc/react";
 import {
