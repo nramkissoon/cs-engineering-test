@@ -3,8 +3,9 @@
 It's live at [https://cs-engineering-test-opal.vercel.app/](https://cs-engineering-test-opal.vercel.app/) !
 
 ## Running the project
+This project uses MySQL/PlanetScale as the database, ensure you have one set up beforehand.
 
-Install dependencies:
+1. Install dependencies:
 
 ```
 pnpm install
@@ -12,7 +13,7 @@ pnpm install
 
 ### Environment variables
 
-Create a `.env` file with the following:
+2. Create a `.env` file with the following:
 
 ```
 DATABASE_URL=
@@ -25,13 +26,19 @@ CLERK_SECRET_KEY=
 
 Builds will fail without properly setting environment variables.
 
-To build:
+3. To build:
 
 ```
 pnpm build
 ```
 
-To run:
+4. Push database changes to your PlanetScale database
+
+```
+pnpm db:push
+```
+
+5. To run:
 
 ```
 pnpm start
