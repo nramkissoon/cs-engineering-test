@@ -37,6 +37,10 @@ To run:
 pnpm start
 ```
 
+## App Screenshots
+
+![Sign in](<screenshots/Screenshot 2024-03-11 at 12.30.57 PM.png>) ![Posts feed](<screenshots/Screenshot 2024-03-11 at 12.29.21 PM.png>) ![Inidividual Post](<screenshots/Screenshot 2024-03-11 at 12.29.05 PM.png>)
+
 ## Repository overview
 
 Here is a couple of points of interest in the repo.
