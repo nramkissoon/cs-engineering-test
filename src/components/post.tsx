@@ -22,7 +22,7 @@ const VoteButtonContainer = ({
 }) => {
   const { isSignedIn } = useAuth();
   const { mutateAsync: updateVote } = api.vote.vote.useMutation();
-  const { mutateAsync: removeVote } = api.vote.removeVote.useMutation();
+  const { mutateAsync: removeVote } = api.vote.remove.useMutation();
   const apiUtils = api.useUtils();
 
   const handleVote = async (

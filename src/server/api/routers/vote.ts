@@ -36,7 +36,7 @@ const getVoteIncrementValue = (value: VoteType, newVote: boolean) => {
 };
 
 export const voteRouter = createTRPCRouter({
-  removeVote: authenticatedProcedure
+  remove: authenticatedProcedure
     .input(
       z.object({
         contentId: z.string(),
