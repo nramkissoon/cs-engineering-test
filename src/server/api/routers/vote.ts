@@ -106,29 +106,6 @@ export const voteRouter = createTRPCRouter({
       const { value, contentId } = input;
       const contentType = getContentType(contentId);
 
-      // First get the object we're voting on
-      let content;
-      if (contentType === "post") {
-        content = await ctx.db.post.findUnique({
-          where: {
-            id: contentId,
-          },
-        });
-      } else if (contentType === "comment") {
-        content = await ctx.db.comment.findUnique({
-          where: {
-            id: contentId,
-          },
-        });
-      }
-
-      if (!content) {
-        throw new TRPCError({
-          message: "Content not found",
-          code: "NOT_FOUND",
-        });
-      }
-
       // Check if the user has already voted
       const existingVote = await ctx.db.vote.findFirst({
         where: {
@@ -173,26 +150,22 @@ export const voteRouter = createTRPCRouter({
           },
         };
         if (contentType === "post") {
-          await ctx.db.$transaction([
+          return await ctx.db.$transaction([
             buildUpsert(),
             ctx.db.post.update(voteTotalUpateArgs),
           ]);
         } else {
-          await ctx.db.$transaction([
+          return await ctx.db.$transaction([
             buildUpsert(),
             ctx.db.comment.update(voteTotalUpateArgs),
           ]);
         }
       }
 
-      try {
-      } catch (error) {
-        console.error(error);
-        throw new TRPCError({
-          message: "An error occurred while voting",
-          code: "INTERNAL_SERVER_ERROR",
-        });
-      }
+      throw new TRPCError({
+        message: "An error occurred while voting",
+        code: "INTERNAL_SERVER_ERROR",
+      });
     }),
 
   list: publicProcedure
