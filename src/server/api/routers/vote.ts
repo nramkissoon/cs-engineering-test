@@ -7,8 +7,7 @@ import {
 } from "../trpc";
 import { VoteType } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-
-const createVoteId = () => `vote_${uuidv4()}`;
+import { buildId } from "~/lib/utils";
 
 const getContentType = (contentId: string) => {
   if (contentId.startsWith("post_")) {
@@ -132,7 +131,7 @@ export const voteRouter = createTRPCRouter({
               value,
             },
             create: {
-              id: createVoteId(),
+              id: buildId("vote"),
               value,
               userId,
               contentId,
