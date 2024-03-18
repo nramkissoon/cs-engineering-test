@@ -52,6 +52,9 @@ export const commentRouter = createTRPCRouter({
           where: {
             rootPostId: input.rootId,
           },
+          orderBy: {
+            createdAt: "asc",
+          },
         });
 
         type Nested = Comment & { children: Nested[] };
@@ -71,7 +74,7 @@ export const commentRouter = createTRPCRouter({
         // traverse the nested structure and sort children by createdAt
         const sortNested = (nested: Nested): Nested => {
           nested.children.sort(
-            (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+            (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
           );
           nested.children = nested.children.map(sortNested);
           return nested;

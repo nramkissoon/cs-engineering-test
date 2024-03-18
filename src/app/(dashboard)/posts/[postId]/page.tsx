@@ -45,33 +45,35 @@ const Comments = ({ postId }: { postId: string }) => {
     comment: CommentType & { children: Nested[] },
     level: number,
   ) => {
-    CommentList.push(
-      <Comment
-        key={comment.id}
-        id={comment.id}
-        userFullName={comment.userFullName}
-        content={comment.content}
-        createdAt={comment.createdAt}
-        parentId={comment.parentId}
-        totalVotes={comment.totalVotes}
-        userId={comment.userId}
-        currentVote={votesMap.get(comment.id)}
-        rootPostId={comment.rootPostId}
-        userImageUrl={comment.userImageUrl}
-        indentLevel={level}
-      />,
-    );
-    comment.children.forEach((child) => {
-      traverse(child, level + 1);
-    });
+    const stack: { comment: Nested; level: number }[] = [];
+    stack.push({ comment, level });
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (current) {
+        const { comment, level } = current;
+        CommentList.push(
+          <Comment
+            key={comment.id}
+            {...comment}
+            currentVote={votesMap.get(comment.id)}
+            indentLevel={level}
+          />,
+        );
+        comment.children.forEach((child) => {
+          stack.push({ comment: child, level: level + 1 });
+        });
+      }
+    }
   };
 
   // handle the top level comments, adding a separator between them
-  for (let i = 0; data && i < data.commentTree.length; i++) {
-    const commentData = data.commentTree[i];
-    commentData && traverse(commentData, 0);
-    if (i != data.commentTree.length - 1) {
-      CommentList.push(<Separator key={i} orientation="horizontal" />);
+  if (data) {
+    for (let i = data?.commentTree.length - 1; data && i >= 0; i--) {
+      const commentData = data.commentTree[i];
+      commentData && traverse(commentData, 0);
+      if (i != 0) {
+        CommentList.push(<Separator key={i} orientation="horizontal" />);
+      }
     }
   }
 
