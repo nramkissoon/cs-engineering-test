@@ -5,9 +5,7 @@ import { api } from "~/trpc/server";
 import { VoteType } from "@prisma/client";
 
 export const useVoteData = async (contentIds: string[]) => {
-  const user = await currentUser();
   const votes = await api.vote.list.query({
-    userId: user?.id ?? "",
     contentIds,
   });
 

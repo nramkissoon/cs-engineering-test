@@ -1,9 +1,5 @@
 import Zod, { z } from "zod";
-import {
-  createTRPCRouter,
-  authenticatedProcedure,
-  publicProcedure,
-} from "../trpc";
+import { createTRPCRouter, authenticatedProcedure } from "../trpc";
 import { VoteType } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { buildId } from "~/lib/utils";
@@ -168,21 +164,21 @@ export const voteRouter = createTRPCRouter({
       });
     }),
 
-  list: publicProcedure
+  list: authenticatedProcedure
     .input(
       z.object({
         contentIds: z.array(z.string()),
-        userId: z.string(),
       }),
     )
     .query(({ ctx, input }) => {
+      const userId = ctx.user.id;
       try {
         return ctx.db.vote.findMany({
           where: {
             contentId: {
               in: input.contentIds,
             },
-            userId: input.userId,
+            userId,
           },
         });
       } catch (error) {

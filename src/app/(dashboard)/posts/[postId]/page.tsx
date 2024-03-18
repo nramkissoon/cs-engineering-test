@@ -18,16 +18,14 @@ const BackToPostsLink = () => {
 };
 
 const Comments = async ({ postId }: { postId: string }) => {
-  const user = await currentUser();
   const comments = await api.comment.list.query({ rootId: postId });
   const votes = await api.vote.list.query({
     contentIds: comments.commentIds,
-    userId: user?.id ?? "",
   });
 
   // build a map of contentId -> vote value
   const votesMap = new Map<string, VoteType>();
-  votes?.forEach((vote) => {
+  votes.forEach((vote) => {
     votesMap.set(vote.contentId, vote.value);
   });
 
@@ -84,7 +82,6 @@ export default async function PostPage({
   });
   const votes = await api.vote.list.query({
     contentIds: [params.postId],
-    userId: user?.id ?? "",
   });
 
   const currentVote = votes[0]?.value ?? undefined;
