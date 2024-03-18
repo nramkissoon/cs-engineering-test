@@ -4,7 +4,6 @@ import { useAuth } from "@clerk/clerk-react";
 import type { Comment as CommentType } from "@prisma/client";
 import { VoteType } from "@prisma/client";
 import clsx from "clsx";
-import { api } from "~/trpc/react";
 import {
   ChevronUpSmall,
   ChevronDownSmall,
@@ -14,6 +13,7 @@ import { timeAgo } from "~/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
 import { NewComment } from "./new-comment";
+import { handleVote } from "~/server/actions";
 
 const VoteButtonContainer = ({
   commentId,
@@ -25,38 +25,11 @@ const VoteButtonContainer = ({
   totalVotes: number;
 }) => {
   const { isSignedIn } = useAuth();
-  const { mutateAsync: updateVote } = api.vote.vote.useMutation();
-  const { mutateAsync: removeVote } = api.vote.remove.useMutation();
-  const apiUtils = api.useUtils();
-
-  const handleVote = async (
-    vote: VoteType,
-    cuurentVote: VoteType | undefined,
-  ) => {
-    if (!isSignedIn) {
-      return;
-    }
-    const invalidateQueries = async () => {
-      await apiUtils.comment.list.invalidate();
-      await apiUtils.vote.list.invalidate();
-    };
-    if (vote === cuurentVote) {
-      await removeVote({ contentId: commentId }).then(async () => {
-        // Invalidate the post and vote queries to refetch the data
-        await invalidateQueries();
-      });
-      return;
-    } else {
-      await updateVote({ contentId: commentId, value: vote }).then(async () => {
-        await invalidateQueries();
-      });
-    }
-  };
 
   return (
     <div className="flex items-center gap-2">
       <button
-        onClick={() => handleVote(VoteType.UP, currentVote)}
+        onClick={() => handleVote(commentId, VoteType.UP, currentVote)}
         disabled={!isSignedIn}
       >
         <ChevronUpSmall
@@ -69,7 +42,7 @@ const VoteButtonContainer = ({
       </button>
       <span className="text-sm font-medium text-gray-800">{totalVotes}</span>
       <button
-        onClick={() => handleVote(VoteType.DOWN, currentVote)}
+        onClick={() => handleVote(commentId, VoteType.DOWN, currentVote)}
         disabled={!isSignedIn}
       >
         <ChevronDownSmall

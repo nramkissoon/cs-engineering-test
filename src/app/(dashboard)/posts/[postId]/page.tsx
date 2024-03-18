@@ -1,14 +1,12 @@
-"use client";
-
 import { Post } from "~/components/post";
 import Link from "next/link";
 import { NewComment } from "~/components/new-comment";
 import { ArrowLeft } from "~/components/cs-icons";
 import { Separator } from "~/components/ui/separator";
-import { api } from "~/trpc/react";
-import { useUser } from "@clerk/clerk-react";
+import { api } from "~/trpc/server";
 import { Comment } from "~/components/comment";
 import type { Comment as CommentType, VoteType } from "@prisma/client";
+import { currentUser } from "@clerk/nextjs/server";
 
 const BackToPostsLink = () => {
   return (
@@ -19,18 +17,13 @@ const BackToPostsLink = () => {
   );
 };
 
-const Comments = ({ postId }: { postId: string }) => {
-  const { user, isSignedIn } = useUser();
-  const { data } = api.comment.list.useQuery({ rootId: postId });
-  const { data: votes } = api.vote.list.useQuery(
-    {
-      contentIds: data?.commentIds ?? [],
-      userId: user?.id ?? "",
-    },
-    {
-      enabled: isSignedIn && data !== undefined,
-    },
-  );
+const Comments = async ({ postId }: { postId: string }) => {
+  const user = await currentUser();
+  const comments = await api.comment.list.query({ rootId: postId });
+  const votes = await api.vote.list.query({
+    contentIds: comments.commentIds,
+    userId: user?.id ?? "",
+  });
 
   // build a map of contentId -> vote value
   const votesMap = new Map<string, VoteType>();
@@ -67,9 +60,9 @@ const Comments = ({ postId }: { postId: string }) => {
   };
 
   // handle the top level comments, adding a separator between them
-  if (data) {
-    for (let i = data?.commentTree.length - 1; data && i >= 0; i--) {
-      const commentData = data.commentTree[i];
+  if (comments) {
+    for (let i = comments.commentTree.length - 1; i >= 0; i--) {
+      const commentData = comments.commentTree[i];
       commentData && traverse(commentData, 0);
       if (i != 0) {
         CommentList.push(<Separator key={i} orientation="horizontal" />);
@@ -80,25 +73,29 @@ const Comments = ({ postId }: { postId: string }) => {
   return <>{CommentList}</>;
 };
 
-export default function PostPage({ params }: { params: { postId: string } }) {
-  const { user, isSignedIn } = useUser();
-  const { data: posts } = api.post.list.useQuery({
+export default async function PostPage({
+  params,
+}: {
+  params: { postId: string };
+}) {
+  const user = await currentUser();
+  const posts = await api.post.list.query({
     postId: params.postId,
   });
-  const { data: votes } = api.vote.list.useQuery(
-    {
-      contentIds: [params.postId],
-      userId: user?.id ?? "",
-    },
-    { enabled: isSignedIn },
-  );
-  const currentVote = votes?.[0]?.value ?? undefined;
-  const post = posts?.[0];
+  const votes = await api.vote.list.query({
+    contentIds: [params.postId],
+    userId: user?.id ?? "",
+  });
+
+  const currentVote = votes[0]?.value ?? undefined;
+  const post = posts[0];
   return (
     <div className="flex flex-col gap-6">
       <BackToPostsLink />
       {post && <Post {...post} currentVote={currentVote} />}
-      <NewComment parentId={params.postId} rootPostId={params.postId} />
+      {user && (
+        <NewComment parentId={params.postId} rootPostId={params.postId} />
+      )}
       <Separator orientation="horizontal" />
 
       <span className="text-sm font-medium text-gray-800">All comments</span>

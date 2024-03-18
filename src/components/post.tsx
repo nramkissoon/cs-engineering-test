@@ -3,13 +3,12 @@
 import type { Post as PostType } from "@prisma/client";
 import { VoteType } from "@prisma/client";
 import { ChevronDown, ChevronUp } from "./cs-icons";
-import { api } from "~/trpc/react";
-import { useAuth, useUser } from "@clerk/clerk-react";
 import Image from "next/image";
 import { timeAgo } from "~/lib/utils";
 import clsx from "clsx";
 import Link from "next/link";
-import { Separator } from "./ui/separator";
+import { handleVote } from "~/server/actions";
+import { useAuth } from "@clerk/clerk-react";
 
 const VoteButtonContainer = ({
   postId,
@@ -21,38 +20,11 @@ const VoteButtonContainer = ({
   totalVotes: number;
 }) => {
   const { isSignedIn } = useAuth();
-  const { mutateAsync: updateVote } = api.vote.vote.useMutation();
-  const { mutateAsync: removeVote } = api.vote.remove.useMutation();
-  const apiUtils = api.useUtils();
-
-  const handleVote = async (
-    vote: VoteType,
-    cuurentVote: VoteType | undefined,
-  ) => {
-    if (!isSignedIn) {
-      return;
-    }
-    const invalidateQueries = async () => {
-      await apiUtils.post.list.invalidate();
-      await apiUtils.vote.list.invalidate();
-    };
-    if (vote === cuurentVote) {
-      await removeVote({ contentId: postId }).then(async () => {
-        // Invalidate the post and vote queries to refetch the data
-        await invalidateQueries();
-      });
-      return;
-    } else {
-      await updateVote({ contentId: postId, value: vote }).then(async () => {
-        await invalidateQueries();
-      });
-    }
-  };
 
   return (
     <div className="flex flex-col items-center gap-y-[10px]">
       <button
-        onClick={() => handleVote(VoteType.UP, currentVote)}
+        onClick={() => handleVote(postId, VoteType.UP, currentVote)}
         disabled={!isSignedIn}
       >
         <ChevronUp
@@ -65,7 +37,7 @@ const VoteButtonContainer = ({
       </button>
       <span className="font-medium text-gray-800">{totalVotes}</span>
       <button
-        onClick={() => handleVote(VoteType.DOWN, currentVote)}
+        onClick={() => handleVote(postId, VoteType.DOWN, currentVote)}
         disabled={!isSignedIn}
       >
         <ChevronDown
@@ -122,60 +94,4 @@ export const Post = ({
       </Link>
     </div>
   );
-};
-
-export const useVoteData = (contentIds: string[]) => {
-  const { user, isSignedIn } = useUser();
-  const { data } = api.vote.list.useQuery(
-    {
-      userId: user?.id ?? "",
-      contentIds,
-    },
-    {
-      enabled: isSignedIn,
-    },
-  );
-
-  const voteValues: Record<string, VoteType> = {};
-
-  for (const vote of data ?? []) {
-    voteValues[vote.contentId] = vote.value;
-  }
-
-  return voteValues;
-};
-
-export const PostFeed = ({
-  forUser,
-  postId,
-}: {
-  forUser?: boolean;
-  postId?: string;
-}) => {
-  const { user, isLoaded } = useUser();
-  const { data } = api.post.list.useQuery(
-    {
-      userId: forUser ? user?.id : undefined,
-      postId,
-    },
-    {
-      enabled: isLoaded || !forUser,
-    },
-  );
-  const voteData = useVoteData(data?.map((post) => post.id) ?? []);
-
-  const Posts = [];
-  for (let i = 0; data && i < data.length; i++) {
-    const post = data[i];
-    post &&
-      Posts.push(
-        <Post key={post.id} {...post} currentVote={voteData[post.id]} />,
-      );
-
-    if (i != data.length - 1) {
-      Posts.push(<Separator orientation="horizontal" />);
-    }
-  }
-
-  return <div className="flex flex-col gap-y-10">{Posts}</div>;
 };

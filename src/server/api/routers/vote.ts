@@ -1,5 +1,4 @@
 import Zod, { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
 import {
   createTRPCRouter,
   authenticatedProcedure,
@@ -106,10 +105,12 @@ export const voteRouter = createTRPCRouter({
       const contentType = getContentType(contentId);
 
       // Check if the user has already voted
-      const existingVote = await ctx.db.vote.findFirst({
+      const existingVote = await ctx.db.vote.findUnique({
         where: {
-          userId,
-          contentId,
+          contentId_userId: {
+            contentId,
+            userId,
+          },
         },
       });
 
