@@ -4,58 +4,12 @@ import { useAuth } from "@clerk/clerk-react";
 import type { Comment as CommentType } from "@prisma/client";
 import { VoteType } from "@prisma/client";
 import clsx from "clsx";
-import {
-  ChevronUpSmall,
-  ChevronDownSmall,
-  Comment as CommentIcon,
-} from "./cs-icons";
+import { Comment as CommentIcon } from "./cs-icons";
 import { timeAgo } from "~/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
 import { NewComment } from "./new-comment";
-import { handleVote } from "~/server/actions";
-
-const VoteButtonContainer = ({
-  commentId,
-  currentVote,
-  totalVotes,
-}: {
-  commentId: string;
-  currentVote: VoteType | undefined;
-  totalVotes: number;
-}) => {
-  const { isSignedIn } = useAuth();
-
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => handleVote(commentId, VoteType.UP, currentVote)}
-        disabled={!isSignedIn}
-      >
-        <ChevronUpSmall
-          className={clsx(
-            currentVote === VoteType.UP
-              ? "stroke-indigo-600"
-              : "stroke-gray-700",
-          )}
-        />
-      </button>
-      <span className="text-sm font-medium text-gray-800">{totalVotes}</span>
-      <button
-        onClick={() => handleVote(commentId, VoteType.DOWN, currentVote)}
-        disabled={!isSignedIn}
-      >
-        <ChevronDownSmall
-          className={clsx(
-            currentVote === VoteType.DOWN
-              ? "stroke-indigo-600"
-              : "stroke-gray-700",
-          )}
-        />
-      </button>
-    </div>
-  );
-};
+import { VoteButtonContainer } from "./vote-button";
 
 const CommentHeader = ({
   createdAt,
@@ -136,9 +90,10 @@ export const Comment = ({
       <p className="text-sm text-gray-700">{content}</p>
       <div className="flex gap-x-4">
         <VoteButtonContainer
-          commentId={id}
+          contentId={id}
           currentVote={currentVote}
           totalVotes={totalVotes}
+          variant="comment"
         />
         <ReplyButton isOpen={isOpen} setIsOpen={setIsOpen} />
       </div>

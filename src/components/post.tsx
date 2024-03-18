@@ -1,56 +1,9 @@
-"use client";
-
 import type { Post as PostType } from "@prisma/client";
 import { VoteType } from "@prisma/client";
-import { ChevronDown, ChevronUp } from "./cs-icons";
 import Image from "next/image";
 import { timeAgo } from "~/lib/utils";
-import clsx from "clsx";
 import Link from "next/link";
-import { handleVote } from "~/server/actions";
-import { useAuth } from "@clerk/clerk-react";
-
-const VoteButtonContainer = ({
-  postId,
-  currentVote,
-  totalVotes,
-}: {
-  postId: string;
-  currentVote: VoteType | undefined;
-  totalVotes: number;
-}) => {
-  const { isSignedIn } = useAuth();
-
-  return (
-    <div className="flex flex-col items-center gap-y-[10px]">
-      <button
-        onClick={() => handleVote(postId, VoteType.UP, currentVote)}
-        disabled={!isSignedIn}
-      >
-        <ChevronUp
-          className={clsx(
-            currentVote === VoteType.UP
-              ? "stroke-indigo-600"
-              : "stroke-gray-700",
-          )}
-        />
-      </button>
-      <span className="font-medium text-gray-800">{totalVotes}</span>
-      <button
-        onClick={() => handleVote(postId, VoteType.DOWN, currentVote)}
-        disabled={!isSignedIn}
-      >
-        <ChevronDown
-          className={clsx(
-            currentVote === VoteType.DOWN
-              ? "stroke-indigo-600"
-              : "stroke-gray-700",
-          )}
-        />
-      </button>
-    </div>
-  );
-};
+import { VoteButtonContainer } from "./vote-button";
 
 export const Post = ({
   title,
@@ -67,9 +20,10 @@ export const Post = ({
   return (
     <div className="flex gap-x-4">
       <VoteButtonContainer
-        postId={id}
+        contentId={id}
         currentVote={currentVote}
         totalVotes={totalVotes}
+        variant="post"
       />
       <Link href={`/posts/${id}`}>
         <div className="flex flex-col gap-y-[6px]">
