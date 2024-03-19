@@ -1,14 +1,11 @@
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
 import {
   authenticatedProcedure,
   createTRPCRouter,
   publicProcedure,
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { getUserFullname } from "~/lib/utils";
-
-const createPostId = () => `post_${uuidv4()}`;
+import { buildId, getUserFullname } from "~/lib/utils";
 
 export const postRouter = createTRPCRouter({
   create: authenticatedProcedure
@@ -22,7 +19,7 @@ export const postRouter = createTRPCRouter({
       try {
         return await ctx.db.post.create({
           data: {
-            id: createPostId(),
+            id: buildId("post"),
             title: input.title,
             content: input.content,
             userId: ctx.auth.userId,

@@ -1,15 +1,12 @@
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
 import {
   authenticatedProcedure,
   createTRPCRouter,
   publicProcedure,
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { getUserFullname } from "~/lib/utils";
+import { buildId, getUserFullname } from "~/lib/utils";
 import type { Comment } from "@prisma/client";
-
-const createCommentId = () => `comm_${uuidv4()}`;
 
 export const commentRouter = createTRPCRouter({
   create: authenticatedProcedure
@@ -24,7 +21,7 @@ export const commentRouter = createTRPCRouter({
       try {
         return await ctx.db.comment.create({
           data: {
-            id: createCommentId(),
+            id: buildId("comm"),
             content: input.content,
             userId: ctx.auth.userId,
             userImageUrl: ctx.user.imageUrl,
@@ -54,6 +51,9 @@ export const commentRouter = createTRPCRouter({
           where: {
             rootPostId: input.rootId,
           },
+          orderBy: {
+            createdAt: "asc",
+          },
         });
 
         type Nested = Comment & { children: Nested[] };
@@ -73,7 +73,7 @@ export const commentRouter = createTRPCRouter({
         // traverse the nested structure and sort children by createdAt
         const sortNested = (nested: Nested): Nested => {
           nested.children.sort(
-            (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+            (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
           );
           nested.children = nested.children.map(sortNested);
           return nested;

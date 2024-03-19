@@ -4,9 +4,9 @@ import { Button } from "./cs-button";
 import { Separator } from "./ui/separator";
 import { useUser } from "@clerk/clerk-react";
 import { Input } from "./cs-input";
-import { api } from "~/trpc/react";
 import { useState } from "react";
 import Image from "next/image";
+import { createComment } from "~/server/actions";
 
 const UserImage = () => {
   const { user } = useUser();
@@ -57,15 +57,6 @@ export const NewComment = ({
 }) => {
   const { isSignedIn } = useUser();
   const [comment, setComment] = useState("");
-  const { mutateAsync } = api.comment.create.useMutation();
-  const apiUtils = api.useUtils();
-
-  const handleSubmit = async () => {
-    await mutateAsync({ content: comment, parentId, rootPostId });
-    await apiUtils.comment.list.invalidate();
-    setComment("");
-    close?.();
-  };
 
   return (
     isSignedIn && (
@@ -74,7 +65,15 @@ export const NewComment = ({
         <div className="flex w-full flex-col items-start gap-y-3">
           <CommentInput comment={comment} setComment={setComment} />
           <Separator orientation="horizontal" />
-          <Button className="self-end" size={"sm"} onClick={handleSubmit}>
+          <Button
+            className="self-end"
+            size={"sm"}
+            onClick={async () => {
+              await createComment(comment, parentId, rootPostId);
+              setComment("");
+              close?.();
+            }}
+          >
             Comment
           </Button>
         </div>

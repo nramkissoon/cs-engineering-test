@@ -1,6 +1,7 @@
 import type { User } from "@clerk/nextjs/server";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { v4 as uuidv4 } from "uuid";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en";
 
@@ -19,3 +20,6 @@ export const getUserFullname = (user: User) => {
 
   return `${user.firstName} ${user.lastName}`;
 };
+
+export const buildId = (type: "post" | "comm" | "vote") =>
+  `${type}_${uuidv4()}`;

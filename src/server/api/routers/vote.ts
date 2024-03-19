@@ -1,14 +1,8 @@
 import Zod, { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
-import {
-  createTRPCRouter,
-  authenticatedProcedure,
-  publicProcedure,
-} from "../trpc";
+import { createTRPCRouter, authenticatedProcedure } from "../trpc";
 import { VoteType } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-
-const createVoteId = () => `vote_${uuidv4()}`;
+import { buildId } from "~/lib/utils";
 
 const getContentType = (contentId: string) => {
   if (contentId.startsWith("post_")) {
@@ -36,7 +30,7 @@ const getVoteIncrementValue = (value: VoteType, newVote: boolean) => {
 };
 
 export const voteRouter = createTRPCRouter({
-  removeVote: authenticatedProcedure
+  remove: authenticatedProcedure
     .input(
       z.object({
         contentId: z.string(),
@@ -46,29 +40,6 @@ export const voteRouter = createTRPCRouter({
       const { userId } = ctx.auth;
       const { contentId } = input;
       const contentType = getContentType(contentId);
-
-      // First get the object we're voting on
-      let content;
-      if (contentType === "post") {
-        content = await ctx.db.post.findUnique({
-          where: {
-            id: contentId,
-          },
-        });
-      } else if (contentType === "comment") {
-        content = await ctx.db.comment.findUnique({
-          where: {
-            id: contentId,
-          },
-        });
-      }
-
-      if (!content) {
-        throw new TRPCError({
-          message: "Content not found",
-          code: "NOT_FOUND",
-        });
-      }
 
       // Check if the user has already voted
       const existingVote = await ctx.db.vote.findFirst({
@@ -89,33 +60,33 @@ export const voteRouter = createTRPCRouter({
             },
           },
         };
+        const voteDeleteArgs = {
+          where: {
+            contentId_userId: {
+              contentId,
+              userId,
+            },
+          },
+        };
 
         if (contentType === "post") {
-          await ctx.db.$transaction([
-            ctx.db.vote.delete({
-              where: {
-                contentId_userId: {
-                  contentId,
-                  userId,
-                },
-              },
-            }),
+          return await ctx.db.$transaction([
+            ctx.db.vote.delete(voteDeleteArgs),
             ctx.db.post.update(voteTotalUpateArgs),
           ]);
         } else {
-          await ctx.db.$transaction([
-            ctx.db.vote.delete({
-              where: {
-                contentId_userId: {
-                  contentId,
-                  userId,
-                },
-              },
-            }),
+          return await ctx.db.$transaction([
+            ctx.db.vote.delete(voteDeleteArgs),
             ctx.db.comment.update(voteTotalUpateArgs),
           ]);
         }
       }
+
+      // If the user hasn't voted, we throw an error
+      throw new TRPCError({
+        message: "Content not found",
+        code: "NOT_FOUND",
+      });
     }),
   vote: authenticatedProcedure
     .input(
@@ -129,34 +100,13 @@ export const voteRouter = createTRPCRouter({
       const { value, contentId } = input;
       const contentType = getContentType(contentId);
 
-      // First get the object we're voting on
-      let content;
-      if (contentType === "post") {
-        content = await ctx.db.post.findUnique({
-          where: {
-            id: contentId,
-          },
-        });
-      } else if (contentType === "comment") {
-        content = await ctx.db.comment.findUnique({
-          where: {
-            id: contentId,
-          },
-        });
-      }
-
-      if (!content) {
-        throw new TRPCError({
-          message: "Content not found",
-          code: "NOT_FOUND",
-        });
-      }
-
       // Check if the user has already voted
-      const existingVote = await ctx.db.vote.findFirst({
+      const existingVote = await ctx.db.vote.findUnique({
         where: {
-          userId,
-          contentId,
+          contentId_userId: {
+            contentId,
+            userId,
+          },
         },
       });
 
@@ -178,7 +128,7 @@ export const voteRouter = createTRPCRouter({
               value,
             },
             create: {
-              id: createVoteId(),
+              id: buildId("vote"),
               value,
               userId,
               contentId,
@@ -196,43 +146,39 @@ export const voteRouter = createTRPCRouter({
           },
         };
         if (contentType === "post") {
-          await ctx.db.$transaction([
+          return await ctx.db.$transaction([
             buildUpsert(),
             ctx.db.post.update(voteTotalUpateArgs),
           ]);
         } else {
-          await ctx.db.$transaction([
+          return await ctx.db.$transaction([
             buildUpsert(),
             ctx.db.comment.update(voteTotalUpateArgs),
           ]);
         }
       }
 
-      try {
-      } catch (error) {
-        console.error(error);
-        throw new TRPCError({
-          message: "An error occurred while voting",
-          code: "INTERNAL_SERVER_ERROR",
-        });
-      }
+      throw new TRPCError({
+        message: "An error occurred while voting",
+        code: "INTERNAL_SERVER_ERROR",
+      });
     }),
 
-  list: publicProcedure
+  list: authenticatedProcedure
     .input(
       z.object({
         contentIds: z.array(z.string()),
-        userId: z.string(),
       }),
     )
     .query(({ ctx, input }) => {
+      const userId = ctx.user.id;
       try {
         return ctx.db.vote.findMany({
           where: {
             contentId: {
               in: input.contentIds,
             },
-            userId: input.userId,
+            userId,
           },
         });
       } catch (error) {
